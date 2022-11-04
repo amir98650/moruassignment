@@ -1,9 +1,10 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:moruassignment/constants/urlconstants.dart';
 import 'package:moruassignment/models/weather_api_model.dart';
 import 'package:moruassignment/sharedpreference.dart';
+import 'package:moruassignment/splashscreen.dart';
 import 'package:moruassignment/widget/weatherview.dart';
+
+import 'api_repo/weather_api.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -16,28 +17,26 @@ class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController name = TextEditingController();
   final sharedPreference _preference = sharedPreference();
+  weatherModel currentWeather = weatherModel();
 
   clickme(String val) {
     _preference.addStringToSF(val);
-  }
-
-  Future<weatherModel> getWeather() async {
-    try {
-      const url = urlConstants.baseurl;
-      final response = await Dio().get(url);
-      final unformatedata = response.data;
-      final formateddata = weatherModel.fromJson(unformatedata);
-      return formateddata;
-    } catch (e) {
-      rethrow;
-    }
   }
 
   @override
   void initState() {
     super.initState();
     _preference.getStringValuesSF().then((value) => setState(() {
-          name.text = value!;
+          if (value != null) {
+            name.text = value;
+            getWeather(value).then((value) => setState(() {
+                  currentWeather = value;
+                }));
+          } else {
+            getWeather("Nepal").then((value) => setState(() {
+                  currentWeather = value;
+                }));
+          }
         }));
   }
 
@@ -46,6 +45,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Weather Api"),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SplassScreen(),
+                      ));
+                },
+                icon: const Icon(Icons.help))
+          ],
         ),
         body: SingleChildScrollView(
           controller: ScrollController(),
@@ -72,43 +82,28 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   ElevatedButton(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          clickme(name.text);
-                        } else {}
+                        clickme(name.text);
+                        getWeather(name.text).then((value) => setState(() {
+                              currentWeather = value;
+                            }));
                       },
-                      child: _preference.getStringValuesSF() != null
+                      child: _preference.getStringValuesSF() == null
                           ? const Text("Save")
                           : const Text("update")),
                 ],
               )),
             ),
-            FutureBuilder<weatherModel>(
-                future: getWeather(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: CircularProgressIndicator(color: Colors.red));
-                  } else if (snapshot.connectionState == ConnectionState.done ||
-                      snapshot.connectionState == ConnectionState.active) {
-                    if (snapshot.hasData && snapshot.hasError == false) {
-                      return WeatherView(
-                        temp: snapshot.data!.current!.tempC.toString(),
-                        condition:
-                            snapshot.data!.current!.condition!.text.toString(),
-                        location:
-                            "https:${snapshot.data!.current!.condition!.icon}",
-                      );
-                    } else {
-                      return Center(
-                        child: Text(snapshot.error.toString()),
-                      );
-                    }
-                  } else {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.red),
-                    );
-                  }
-                }),
+            currentWeather.current != null
+                ? WeatherView(
+                    temp: currentWeather.current!.tempC.toString(),
+                    condition:
+                        currentWeather.current!.condition!.text.toString(),
+                    location:
+                        "https:${currentWeather.current!.condition!.icon}",
+                  )
+                : Center(
+                    child: CircularProgressIndicator(color: Colors.red),
+                  ),
           ]),
         ));
   }

@@ -17,7 +17,7 @@ class _SplassScreenState extends State<SplassScreen> {
 
   navigatetohome() async {
     await Future.delayed(
-      const Duration(seconds: 1),
+      const Duration(seconds: 5),
       () {
         Navigator.pushReplacement(
             context,

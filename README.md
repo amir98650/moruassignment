@@ -1,16 +1,22 @@
 # moruassignment
 
-A new Flutter project.
+A Weather app.
 
-## Getting Started
+# tools used
+1. Flutter 3.3.4
 
-This project is a starting point for a Flutter application.
+# api url
+http://api.weatherapi.com/v1/current.json?key=2d492a5a3bb04826b1e140552223110&q=Nepal
 
-A few resources to get you started if this is your first Flutter project:
+# dependencies 
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. dio: ^4.0.6 
+2. shared_preferences: ^2.0.15
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# getting started
+
+1. run command "flutter pub get" for getting all the dependencies used in this app after git clone.
+2. connect to mobile emulator or connect to your own mobile device 
+   (Note: debug mode must be enabled in your mobile).
+   https://appmaking.com/run-flutter-apps-on-android-device/
+3. run command "flutter run"

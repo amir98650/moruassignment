@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:stream_transform/stream_transform.dart';
 import 'package:flutter/material.dart';
 import 'package:moruassignment/models/weather_api_model.dart';
 import 'package:moruassignment/sharedpreference.dart';
@@ -18,6 +20,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController name = TextEditingController();
   final sharedPreference _preference = sharedPreference();
   weatherModel currentWeather = weatherModel();
+  StreamController<String> streamController = StreamController();
 
   clickme(String val) {
     _preference.addStringToSF(val);
@@ -26,6 +29,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    streamController.stream
+        .debounce(const Duration(milliseconds: 400))
+        .listen((s) => _validateValues());
     _preference.getStringValuesSF().then((value) => setState(() {
           if (value != null) {
             name.text = value;
@@ -38,6 +44,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 }));
           }
         }));
+  }
+
+  _validateValues() {
+    if (name.text.length > 3) {
+      getWeather(name.text).then((value) => setState(() {
+            currentWeather = value;
+          }));
+    } else {
+      // some other code here
+    }
   }
 
   @override
@@ -66,6 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                 children: [
                   TextFormField(
+                    onChanged: (value) {
+                      streamController.add(value);
+                    },
                     decoration: const InputDecoration(
                       icon: Icon(Icons.place_outlined),
                       hintText: 'Enter place Name',
@@ -101,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     location:
                         "https:${currentWeather.current!.condition!.icon}",
                   )
-                : Center(
+                : const Center(
                     child: CircularProgressIndicator(color: Colors.red),
                   ),
           ]),
